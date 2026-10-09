@@ -62,14 +62,14 @@
     <ClCompile Include="..\..\..\..\Downloads\imgui\imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Downloads\imgui-master\imgui-master\examples\example_glfw_opengl3\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Downloads\imgui-master\imgui-master\imgui_draw.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Downloads\imgui-master\imgui-master\imgui_demo.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

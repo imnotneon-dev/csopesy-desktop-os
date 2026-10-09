@@ -158,7 +158,6 @@
     <ClInclude Include="..\..\..\..\Downloads\imgui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\Downloads\imgui-master\imgui-master\examples\example_glfw_opengl3\main.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui-master\imgui-master\imgui_demo.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui-master\imgui-master\imgui_draw.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui\imgui.cpp" />
@@ -166,6 +165,7 @@
     <ClCompile Include="..\..\..\..\Downloads\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

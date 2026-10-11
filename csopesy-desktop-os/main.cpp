@@ -102,10 +102,10 @@ void RenderTaskManager() {
 
         // dummy data
         static const ProcessRow processes[] = {
-            { "Google Chrome",    17.4f,   6113.36f, 0.1f, 0.1f },
-            { "Visual Studio Code",       5.4f, 778.1f, 0.0f, 0.0f },
-            { "Task Manager",     0.8f,  107.0f, 0.0f, 0.0f },
-            { "Windows Explorer",  1.5f,  156.2f, 0.0f, 0.0f }
+            { "Search", 17.4f, 6113.36f, 0.1f, 0.1f },
+            { "Initialization Details", 1.4f, 179.1f, 0.0f, 0.0f },
+            { "Task Manager", 0.8f, 107.0f, 0.0f, 0.0f },
+            { "File Explorer", 1.5f, 156.2f, 0.0f, 0.0f }
         };
 
         // number of processes

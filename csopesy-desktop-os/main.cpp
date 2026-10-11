@@ -9,12 +9,20 @@
 #include <sstream>
 #include <string>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 static void glfw_error_callback(int error, const char* description) {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
 // global flag to control application shutdown
 bool g_AllowShutdown = false;
+
+// for wallpaper
+GLuint g_WallpaperTexture = 0;
+int g_WallpaperWidth = 0;
+int g_WallpaperHeight = 0;
 
 // taskbar state
 bool g_ShowFiles = false;
@@ -28,6 +36,31 @@ const float ICON_SIZE = 66.0f;
 const float TASKBAR_PAD_X = 14.0f;
 const float TASKBAR_PAD_Y = (TASKBAR_HEIGHT - ICON_SIZE) / 2.0f;
 const float FLAT_BTN_W = 50.0f;
+
+bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height) {
+    int image_width = 0;
+    int image_height = 0;
+    unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
+    if (image_data == NULL) return false;
+
+    GLuint image_texture;
+    glGenTextures(1, &image_texture);
+    glBindTexture(GL_TEXTURE_2D, image_texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    stbi_image_free(image_data);
+
+    *out_texture = image_texture;
+    *out_width = image_width;
+    *out_height = image_height;
+
+    return true;
+}
 
 // helper function to get formatted time & date
 std::string GetCurrentTimeString() {
@@ -108,9 +141,9 @@ void RenderTaskManager() {
         snprintf(diskHeader, sizeof(diskHeader), "Disk (%.0f%%)", totalDiskPercent);
         snprintf(netHeader, sizeof(netHeader), "Network (%.0f%%)", totalNetworkPercent);
 
-        ImGuiTableFlags tableFlags = ImGuiTableFlags_Borders 
-                                    | ImGuiTableFlags_RowBg 
-                                    | ImGuiTableFlags_Resizable;
+        ImGuiTableFlags tableFlags = ImGuiTableFlags_Borders
+            | ImGuiTableFlags_RowBg
+            | ImGuiTableFlags_Resizable;
 
         // creates table to display task manager details
         if (ImGui::BeginTable("ProcessesTable", 5, tableFlags)) {
@@ -156,13 +189,13 @@ void RenderTaskManager() {
 void RenderDesktop() {
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGuiWindowFlags desktop_flags = ImGuiWindowFlags_NoTitleBar
-                                    | ImGuiWindowFlags_NoResize
-                                    | ImGuiWindowFlags_NoMove
-                                    | ImGuiWindowFlags_NoCollapse
-                                    | ImGuiWindowFlags_NoBringToFrontOnFocus
-                                    | ImGuiWindowFlags_NoNavFocus
-                                    | ImGuiWindowFlags_NoScrollbar
-                                    | ImGuiWindowFlags_NoSavedSettings;
+        | ImGuiWindowFlags_NoResize
+        | ImGuiWindowFlags_NoMove
+        | ImGuiWindowFlags_NoCollapse
+        | ImGuiWindowFlags_NoBringToFrontOnFocus
+        | ImGuiWindowFlags_NoNavFocus
+        | ImGuiWindowFlags_NoScrollbar
+        | ImGuiWindowFlags_NoSavedSettings;
 
     ImDrawList* draw_list = nullptr;
     ImVec2 pos = ImVec2(0.0f, 0.0f);
@@ -187,11 +220,23 @@ void RenderDesktop() {
     pos = ImGui::GetWindowPos();
     size = ImGui::GetWindowSize();
 
-    draw_list->AddRectFilledMultiColor(
-        pos,
-        ImVec2(pos.x + size.x, pos.y + size.y),
-        col_top, col_top, col_bottom, col_bottom
-    );
+    float customWidth = 1550.0f;  
+    float customHeight = 780.0f;
+
+    if (g_WallpaperTexture != 0) {
+        draw_list->AddImage(
+            (ImTextureID)(intptr_t)g_WallpaperTexture,
+            pos,
+            ImVec2(pos.x + customWidth, pos.y + customHeight)
+        );
+    }
+    else {
+        draw_list->AddRectFilledMultiColor(
+            pos,
+            ImVec2(pos.x + size.x, pos.y + size.y),
+            col_top, col_top, col_bottom, col_bottom
+        );
+    }
 
     ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.0f, 1.0f), "CSOPESY OS MO4");
     ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.0f, 1.0f), "S01 - Guillermo, Lee, Lim");
@@ -398,12 +443,14 @@ int main(int, char**) {
 
     glfwSetWindowCloseCallback(window, [](GLFWwindow* win) {
         if (!g_AllowShutdown) {
-            glfwSetWindowShouldClose(win, GLFW_FALSE); 
+            glfwSetWindowShouldClose(win, GLFW_FALSE);
         }
         });
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
+
+    LoadTextureFromFile("wallpaper.png", &g_WallpaperTexture, &g_WallpaperWidth, &g_WallpaperHeight);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -434,7 +481,7 @@ int main(int, char**) {
         RenderSearchWindow();
 
         // task manager
-        if (g_ShowTaskManager) 
+        if (g_ShowTaskManager)
             RenderTaskManager();
 
         // render frame
@@ -447,6 +494,10 @@ int main(int, char**) {
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
+    }
+
+    if (g_WallpaperTexture) {
+        glDeleteTextures(1, &g_WallpaperTexture);
     }
 
     ImGui_ImplOpenGL3_Shutdown();

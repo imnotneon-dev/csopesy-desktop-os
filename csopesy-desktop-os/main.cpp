@@ -9,9 +9,6 @@
 #include <sstream>
 #include <string>
 
-// global variables for OS UI
-bool showTaskManager = false;
-
 static void glfw_error_callback(int error, const char* description) {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
@@ -50,17 +47,17 @@ std::string GetCurrentTimeString() {
 }
 
 void RenderTaskManager() {
-    if (!showTaskManager)
+    if (!g_ShowTaskManager)
         return;
 
     // gets current window size
     ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
     // sets window size of task manager (scaled to 45% of desktop size)
-    ImGui::SetNextWindowSize(ImVec2(displaySize.x * 0.45f, displaySize.y * 0.45f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(displaySize.x * 0.65f, displaySize.y * 0.65f), ImGuiCond_FirstUseEver);
 
     // creates new window for task manager
-    if (ImGui::Begin("Task Manager", &showTaskManager)) {
+    if (ImGui::Begin("Task Manager", &g_ShowTaskManager)) {
         // data struct for processes data
         struct ProcessRow {
             const char* name;   // process name
@@ -437,7 +434,8 @@ int main(int, char**) {
         RenderSearchWindow();
 
         // task manager
-        // if (g_ShowTaskManager) RenderTaskManager();
+        if (g_ShowTaskManager) 
+            RenderTaskManager();
 
         // render frame
         ImGui::Render();

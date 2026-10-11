@@ -9,6 +9,9 @@
 #include <sstream>
 #include <string>
 
+// global variables for OS UI
+bool showTaskManager = false;
+
 static void glfw_error_callback(int error, const char* description) {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
@@ -33,9 +36,123 @@ std::string GetCurrentTimeString() {
     return std::string(buffer);
 }
 
+void RenderTaskManager() {
+    if (!showTaskManager)
+        return;
+
+    // gets current window size
+    ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+    // sets window size of task manager (scaled to 45% of desktop size)
+    ImGui::SetNextWindowSize(ImVec2(displaySize.x * 0.45f, displaySize.y * 0.45f), ImGuiCond_FirstUseEver);
+
+    // creates new window for task manager
+    if (ImGui::Begin("Task Manager", &showTaskManager)) {
+        // data struct for processes data
+        struct ProcessRow {
+            const char* name;   // process name
+            float cpu;          // cpu usage
+            float memory;       // memory usage
+            float disk;         // disk usage
+            float network;      // network usage
+        };
+
+        // dummy data
+        static const ProcessRow processes[] = {
+            { "Google Chrome",    17.4f,   6113.36f, 0.1f, 0.1f },
+            { "Visual Studio Code",       5.4f, 778.1f, 0.0f, 0.0f },
+            { "Task Manager",     0.8f,  107.0f, 0.0f, 0.0f },
+            { "Windows Explorer",  1.5f,  156.2f, 0.0f, 0.0f }
+        };
+
+        // number of processes
+        const int numProcessRows = sizeof(processes) / sizeof(processes[0]);
+
+        // system capacity (dummy values)
+        const float totalRAM = 8.0f * 1024.0f;  // 8 GB
+        const float maxDisk = 500.0f;        // 500 MB/s
+        const float maxNetwork = 100.0f;        // 100 Mbps
+
+        // total usage values
+        float totalCPU = 0.0f;
+        float totalMemory = 0.0f;
+        float totalDisk = 0.0f;
+        float totalNetwork = 0.0f;
+
+        for (int i = 0; i < numProcessRows; i++) {
+            totalCPU += processes[i].cpu;
+            totalMemory += processes[i].memory;
+            totalDisk += processes[i].disk;
+            totalNetwork += processes[i].network;
+        }
+
+        // converting to percentage values
+        float totalMemoryPercent = (totalMemory / totalRAM) * 100.0f;
+        float totalDiskPercent = (totalDisk / maxDisk) * 100.0f;
+        float totalNetworkPercent = (totalNetwork / maxNetwork) * 100.0f;
+
+        // format table headers
+        char cpuHeader[32], memHeader[32], diskHeader[32], netHeader[32];
+        snprintf(cpuHeader, sizeof(cpuHeader), "CPU (%.0f%%)", totalCPU);
+        snprintf(memHeader, sizeof(memHeader), "Memory (%.0f%%)", totalMemoryPercent);
+        snprintf(diskHeader, sizeof(diskHeader), "Disk (%.0f%%)", totalDiskPercent);
+        snprintf(netHeader, sizeof(netHeader), "Network (%.0f%%)", totalNetworkPercent);
+
+        ImGuiTableFlags tableFlags = ImGuiTableFlags_Borders 
+                                    | ImGuiTableFlags_RowBg 
+                                    | ImGuiTableFlags_Resizable;
+
+        // creates table to display task manager details
+        if (ImGui::BeginTable("ProcessesTable", 5, tableFlags)) {
+            ImGui::TableSetupColumn("Process Name");
+            ImGui::TableSetupColumn(cpuHeader);
+            ImGui::TableSetupColumn(memHeader);
+            ImGui::TableSetupColumn(diskHeader);
+            ImGui::TableSetupColumn(netHeader);
+            ImGui::TableHeadersRow();
+
+            // displays rows
+            for (int i = 0; i < numProcessRows; i++) {
+                ImGui::TableNextRow();
+
+                // process name
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("%s", processes[i].name);
+
+                // cpu usage
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("%.1f%%", processes[i].cpu);
+
+                // memory usage
+                ImGui::TableSetColumnIndex(2);
+                ImGui::Text("%.1f MB", processes[i].memory);
+
+                // disk usage
+                ImGui::TableSetColumnIndex(3);
+                ImGui::Text("%.1f MB/s", processes[i].disk);
+
+                // network usage
+                ImGui::TableSetColumnIndex(4);
+                ImGui::Text("%.1f Mbps", processes[i].network);
+            }
+
+            ImGui::EndTable();
+        }
+    }
+
+    ImGui::End();
+}
+
 void RenderDesktop() {
     ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGuiWindowFlags desktop_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    ImGuiWindowFlags desktop_flags = ImGuiWindowFlags_NoTitleBar
+                                    | ImGuiWindowFlags_NoResize
+                                    | ImGuiWindowFlags_NoMove
+                                    | ImGuiWindowFlags_NoCollapse
+                                    | ImGuiWindowFlags_NoBringToFrontOnFocus
+                                    | ImGuiWindowFlags_NoNavFocus
+                                    | ImGuiWindowFlags_NoScrollbar
+                                    | ImGuiWindowFlags_NoSavedSettings;
 
     ImDrawList* draw_list = nullptr;
     ImVec2 pos = ImVec2(0.0f, 0.0f);
@@ -164,7 +281,7 @@ int main(int, char**) {
 
 
         // task manager
-
+        RenderTaskManager();
 
         // render frame
         ImGui::Render();

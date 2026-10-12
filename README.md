@@ -1,4 +1,4 @@
-# csopesy-desktop-os# CSOPESY Semi-Major Output 2 - Desktop-Style OS Mock-up
+# CSOPESY Semi-Major Output 2 - Desktop-Style OS Mock-up
 
 **Course:** CSOPESY
 **Section:** S01

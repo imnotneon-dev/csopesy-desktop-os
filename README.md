@@ -6,9 +6,9 @@
 
 **Members**
 
-- [First name] Guillermo
+- Iain Guillermo
 - Hannah Lee
-- [First name] Lim
+- Jenrick Lim
 
 **GitHub:** https://github.com/imnotneon-dev/csopesy-desktop-os
 
